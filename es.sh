@@ -4,7 +4,7 @@
 
 ###### OPTIONS ######
 #
-# -s <subpath> : add subdirectory [OPTARG: file subpath to add (e.g. index, type, id)]
+# -s <subpath> : add subdirectory [OPTARG: file subpath to add, e.g. /index/type/id)]
 #
 # -g : GET
 #
@@ -65,6 +65,7 @@ subdir=""
 autoindex="false"
 create="false"
 multiget="false"
+urlroot="localhost:9200"
 
 while getopts :s:gm:dp:achq:l opt; do
     case $opt in
@@ -98,9 +99,9 @@ while getopts :s:gm:dp:achq:l opt; do
                     echo "Multiget file empty or does not exist"
                     exit 1
                 fi
-                curl -XGET 'localhost:9200'$subdir'/_mget?pretty' -H 'Content-Type: application/json' -d "$docs"
+                curl -XGET $urlroot$subdir'/_mget?pretty' -H 'Content-Type: application/json' -d "$docs"
             else 
-                curl -XGET 'localhost:9200'$subdir
+                curl -XGET $urlroot$subdir
             fi
             ;;
         p)
@@ -115,19 +116,19 @@ while getopts :s:gm:dp:achq:l opt; do
 
             if ( $autoindex )
             then
-                curl -XPOST 'localhost:9200'$subdir'?pretty' -H 'Content-Type: application/json' -d "$data"
+                curl -XPOST $urlroot$subdir'?pretty' -H 'Content-Type: application/json' -d "$data"
             elif ( $create )
             then
-                curl -XPUT 'localhost:9200'$subdir'/_create?pretty' -H 'Content-Type: application/json' -d "$data"
+                curl -XPUT $urlroot$subdir'/_create?pretty' -H 'Content-Type: application/json' -d "$data"
             else 
-                curl -XPUT 'localhost:9200'$subdir'?pretty' -H 'Content-Type: application/json' -d "$data"
+                curl -XPUT $urlroot$subdir'?pretty' -H 'Content-Type: application/json' -d "$data"
             fi
             ;;
         d)
-            curl -XDELETE 'localhost:9200'$subdir'?pretty'
+            curl -XDELETE $urlroot$subdir'?pretty'
             ;;
         h)
-            curl -i -XHEAD 'localhost:9200'$subdir'?pretty'
+            curl -i -XHEAD $urlroot$subdir'?pretty'
             ;;
         q)
             query=`cat $OPTARG`
@@ -138,16 +139,16 @@ while getopts :s:gm:dp:achq:l opt; do
                 exit 1
             fi
             echo "Query retrieved from $OPTARG \n\n\n"
-            false=`curl -XGET 'localhost:9200'$subdir'/_validate/query?pretty' -H 'Content-Type: application/json' -d "$query" | grep "false" -c`
+            false=`curl -XGET $urlroot$subdir'/_validate/query?pretty' -H 'Content-Type: application/json' -d "$query" | grep "false" -c`
             if (( $false == 1 ))
             then
                 echo "Query invalid\n\n\n"
             else
-                curl -XGET 'localhost:9200'$subdir'/_search?pretty' -H 'Content-Type: application/json' -d "$query"
+                curl -XGET $urlroot$subdir'/_search?pretty' -H 'Content-Type: application/json' -d "$query"
             fi
             ;;
         l)
-            curl 'localhost:9200/_cat/indices?v'
+            curl $urlroot'/_cat/indices?v'
             ;;
     esac
 done
